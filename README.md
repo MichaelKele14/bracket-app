@@ -40,5 +40,5 @@ Akses di browser:
 ---
 
 ## 🔒 Akses Admin
-- **PIN Default**: `1234`
+- **PIN Admin**: `1412` (Dapat diubah di `data/bracket.json`)
 - Buka Menu `[ ☰ Menu ]` di pojok kanan atas, pilih **Login Admin**, dan masukkan PIN untuk mengaktifkan mode pengelolaan.
