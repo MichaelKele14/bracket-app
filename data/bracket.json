@@ -1,0 +1,258 @@
+{
+  "title": "HKN MLBB SERIES 1",
+  "subtitle": "Diselenggarankan dalam rangka Hari Kesehatan Nasional ke 62 Tahun oleh Dinas Kesehatan, RSUD Maria Walanda Maramis, dan Semua Puskesmas di Minahasa Utara",
+  "adminPin": "1234",
+  "matches": [
+    {
+      "id": "r1_m1",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t8",
+        "seed": 8,
+        "name": "Airmadidi"
+      },
+      "team2": {
+        "id": "t9",
+        "seed": 9,
+        "name": "RSUD ( Daong Lemong )"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m1",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "r1_m2",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t4",
+        "seed": 4,
+        "name": "RSUD ( Anomali )"
+      },
+      "team2": {
+        "id": "t13",
+        "seed": 13,
+        "name": "Tinongko"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m2",
+      "nextMatchSlot": "team1",
+      "mvp": null
+    },
+    {
+      "id": "r1_m3",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t5",
+        "seed": 5,
+        "name": "Kema Mubune"
+      },
+      "team2": {
+        "id": "t12",
+        "seed": 12,
+        "name": "RSUD (LABORGIMA)"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m2",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "r1_m4",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t7",
+        "seed": 7,
+        "name": "Batu"
+      },
+      "team2": {
+        "id": "t10",
+        "seed": 10,
+        "name": "RSUD ( Anak Bawang )"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m3",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "r1_m5",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t3",
+        "seed": 3,
+        "name": "RSUD ( Gloria Dal Nord )"
+      },
+      "team2": {
+        "id": "t14",
+        "seed": 14,
+        "name": "Tatelu"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m4",
+      "nextMatchSlot": "team1",
+      "mvp": null
+    },
+    {
+      "id": "r1_m6",
+      "round": 1,
+      "roundName": "ROUND 1",
+      "team1": {
+        "id": "t6",
+        "seed": 6,
+        "name": "RSUD (Gloria Dal Nord 2)"
+      },
+      "team2": {
+        "id": "t11",
+        "seed": 11,
+        "name": "Dinkes"
+      },
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "r2_m4",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "r2_m1",
+      "round": 2,
+      "roundName": "ROUND 2",
+      "team1": {
+        "id": "t1",
+        "seed": 1,
+        "name": "Kolongan"
+      },
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "sf_m1",
+      "nextMatchSlot": "team1",
+      "mvp": null
+    },
+    {
+      "id": "r2_m2",
+      "round": 2,
+      "roundName": "ROUND 2",
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "sf_m1",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "r2_m3",
+      "round": 2,
+      "roundName": "ROUND 2",
+      "team1": {
+        "id": "t2",
+        "seed": 2,
+        "name": "Kauditan Talawaan"
+      },
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "sf_m2",
+      "nextMatchSlot": "team1",
+      "mvp": null
+    },
+    {
+      "id": "r2_m4",
+      "round": 2,
+      "roundName": "ROUND 2",
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "sf_m2",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "sf_m1",
+      "round": 3,
+      "roundName": "SEMI-FINAL",
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "gf_m1",
+      "nextMatchSlot": "team1",
+      "mvp": null
+    },
+    {
+      "id": "sf_m2",
+      "round": 3,
+      "roundName": "SEMI-FINAL",
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": "gf_m1",
+      "nextMatchSlot": "team2",
+      "mvp": null
+    },
+    {
+      "id": "gf_m1",
+      "round": 4,
+      "roundName": "GRAND FINAL",
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 5,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": null,
+      "nextMatchSlot": null,
+      "mvp": null
+    }
+  ]
+}

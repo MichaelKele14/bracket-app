@@ -1,0 +1,20 @@
+{
+  "name": "hkn-mlbb-series-1-bracket",
+  "version": "1.0.0",
+  "description": "Interactive Tournament Bracket Manager for HKN MLBB Series 1",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "mlbb",
+    "bracket",
+    "tournament",
+    "esports"
+  ],
+  "author": "JARVIS & RSUD Team",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

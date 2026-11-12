@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Turnamen MLBB - Interactive Bracket Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="mode-viewer view-mode-tree">
+  <!-- Top Navigation Bar: ONLY 2 ITEMS (1 Judul, 1 Menu) -->
+  <header id="top-bar">
+    <!-- Item 1: Judul & Brand Turnamen -->
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <h1 id="tournament-title">HKN MLBB SERIES 1</h1>
+        <p id="tournament-subtitle">Diselenggarankan dalam rangka Hari Kesehatan Nasional ke 62 Tahun oleh Dinas Kesehatan, RSUD Maria Walanda Maramis, dan Semua Puskesmas di Minahasa Utara</p>
+      </div>
+    </div>
+
+    <!-- Item 2: Menu Terpadu (Pindah Bagan/Ronde & Login Admin) -->
+    <div class="top-menu-wrap">
+      <button class="btn btn-menu-trigger" id="btn-open-menu" title="Buka Menu Turnamen & Admin">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+        <span id="menu-btn-label">Menu</span>
+        <span class="menu-admin-badge" id="menu-admin-dot" title="Status Admin"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Round Selector Pills Bar (Only shown in mobile feed view) -->
+  <nav id="mobile-round-bar" class="mobile-round-nav">
+    <button class="round-nav-pill active" data-round="1">
+      <span class="round-nav-name">Round 1</span>
+      <span class="round-nav-count">6 Laga</span>
+    </button>
+    <button class="round-nav-pill" data-round="2">
+      <span class="round-nav-name">Round 2</span>
+      <span class="round-nav-count">4 Laga</span>
+    </button>
+    <button class="round-nav-pill" data-round="3">
+      <span class="round-nav-name">Semi-Final</span>
+      <span class="round-nav-count">2 Laga</span>
+    </button>
+    <button class="round-nav-pill trophy-pill" data-round="4">
+      <span class="round-nav-name">Grand Final 🏆</span>
+      <span class="round-nav-count">Juara</span>
+    </button>
+  </nav>
+
+  <!-- Interactive Drag & Drop Notification Banner (Admin only) -->
+  <div id="drag-hint" class="drag-hint">
+    <div class="drag-hint-content">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
+      <span><strong>Mode Admin Aktif:</strong> Klik kartu laga untuk atur skor & pemenang. Di tampilan bagan, tarik tim untuk tukar slot!</span>
+    </div>
+  </div>
+
+  <!-- VIEW 1: Mobile-Optimized Vertical Feed Container -->
+  <section id="mobile-feed-container" class="mobile-feed-section">
+    <div class="mobile-feed-header">
+      <h2 id="mobile-current-round-title">ROUND 1 (12 Tim • BO3)</h2>
+      <p id="mobile-current-round-desc">Pemenang melaju ke babak Perempat Final (Round 2)</p>
+    </div>
+    <div id="mobile-cards-list" class="mobile-cards-list"></div>
+  </section>
+
+  <!-- VIEW 2: Zoomable / Pannable Tree Bracket Workspace -->
+  <main id="viewport" class="tree-viewport">
+    <!-- Floating Zoom Controls for Tree View -->
+    <div class="tree-floating-controls">
+      <button class="float-btn" id="btn-zoom-in" title="Perbesar">+</button>
+      <span id="zoom-level">100%</span>
+      <button class="float-btn" id="btn-zoom-out" title="Perkecil">−</button>
+      <button class="float-btn" id="btn-reset-view" title="Pusatkan Bagan">⌖</button>
+    </div>
+
+    <div id="bracket-canvas">
+      <!-- SVG Connecting Lines Layer -->
+      <svg id="bracket-lines" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <!-- Rounds Container -->
+      <div id="rounds-container">
+        <!-- Round 1 -->
+        <div class="round-column" data-round="1">
+          <div class="round-header">
+            <h3>ROUND 1</h3>
+            <span class="round-sub">12 Tim • BO3</span>
+          </div>
+          <div class="matches-list" id="col-r1"></div>
+        </div>
+
+        <!-- Round 2 (Quarterfinals) -->
+        <div class="round-column" data-round="2">
+          <div class="round-header">
+            <h3>ROUND 2</h3>
+            <span class="round-sub">Perempat Final • BO3</span>
+          </div>
+          <div class="matches-list" id="col-r2"></div>
+        </div>
+
+        <!-- Round 3 (Semifinals) -->
+        <div class="round-column" data-round="3">
+          <div class="round-header">
+            <h3>SEMI-FINAL</h3>
+            <span class="round-sub">4 Tim • BO3</span>
+          </div>
+          <div class="matches-list" id="col-sf"></div>
+        </div>
+
+        <!-- Round 4 (Grand Final) -->
+        <div class="round-column" data-round="4">
+          <div class="round-header trophy-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7"></path><path d="M14 14.66V17c0 .55.45 1 1 1h2"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            <h3>GRAND FINAL</h3>
+            <span class="round-sub">Perebutan Juara • BO5</span>
+          </div>
+          <div class="matches-list" id="col-gf"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Unified Navigation & Admin Menu Modal -->
+  <div class="modal-backdrop" id="modal-nav-menu">
+    <div class="modal-card menu-drawer-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="match-badge">MENU</span>
+          <h2>Navigasi & Admin</h2>
+        </div>
+        <button class="modal-close" data-close="modal-nav-menu">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- 1. Pindah Tampilan Bagan / Ronde -->
+        <div class="menu-section">
+          <span class="menu-section-label">PILIH TAMPILAN</span>
+          <div class="menu-view-grid">
+            <button type="button" class="menu-view-card active" id="menu-opt-tree">
+              <div class="m-view-icon">🗺️</div>
+              <div class="m-view-text">
+                <strong>Bagan Pohon</strong>
+                <p>Bagan turnamen penuh dengan zoom & pan</p>
+              </div>
+            </button>
+            <button type="button" class="menu-view-card" id="menu-opt-feed">
+              <div class="m-view-icon">📱</div>
+              <div class="m-view-text">
+                <strong>Daftar Ronde</strong>
+                <p>Tampilan kartu vertikal per-ronde untuk HP</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Pintasan Ronde Tertentu -->
+        <div class="menu-section" id="menu-rounds-section">
+          <span class="menu-section-label">PINDAH KE RONDE</span>
+          <div class="menu-round-buttons">
+            <button type="button" class="menu-round-btn active" data-round="1">Round 1 (6 Laga)</button>
+            <button type="button" class="menu-round-btn" data-round="2">Round 2 (4 Laga)</button>
+            <button type="button" class="menu-round-btn" data-round="3">Semi-Final (2 Laga)</button>
+            <button type="button" class="menu-round-btn trophy" data-round="4">Grand Final 🏆</button>
+          </div>
+        </div>
+
+        <!-- 3. Akses Admin & Pengaturan -->
+        <div class="menu-section">
+          <span class="menu-section-label">AKSES & KONTROL</span>
+          <div class="menu-actions-list">
+            <!-- Login / Logout Admin Button -->
+            <button type="button" class="menu-action-item highlight" id="menu-btn-auth">
+              <div class="m-action-icon" id="menu-auth-icon">🔐</div>
+              <div class="m-action-info">
+                <strong id="menu-auth-title">Login Admin Turnamen</strong>
+                <p id="menu-auth-desc">Masukkan PIN untuk mengedit skor, pemenang & MVP</p>
+              </div>
+            </button>
+
+            <!-- Export PNG (Admin only) -->
+            <button type="button" class="menu-action-item admin-only-item" id="menu-btn-export">
+              <div class="m-action-icon">📸</div>
+              <div class="m-action-info">
+                <strong>Simpan Gambar Bagan (PNG)</strong>
+                <p>Unduh gambar bagan untuk dibagikan ke WhatsApp</p>
+              </div>
+            </button>
+
+            <!-- OBS Link -->
+            <a href="?mode=overlay" target="_blank" class="menu-action-item" id="menu-btn-obs">
+              <div class="m-action-icon">🎥</div>
+              <div class="m-action-info">
+                <strong>Buka OBS Stream Overlay</strong>
+                <p>Mode transparan untuk Browser Source OBS Studio</p>
+              </div>
+            </a>
+
+            <!-- Reset Tournament (Admin only) -->
+            <button type="button" class="menu-action-item danger admin-only-item" id="menu-btn-reset">
+              <div class="m-action-icon">🔄</div>
+              <div class="m-action-info">
+                <strong>Reset Seluruh Skor Turnamen</strong>
+                <p>Kembalikan bagan turnamen ke awal</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="modal-backdrop" id="modal-login">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Login Admin Turnamen</h2>
+        <button class="modal-close" data-close="modal-login">&times;</button>
+      </div>
+      <form id="form-login">
+        <p class="modal-desc">Masukkan PIN Admin untuk mengedit skor, memajukan pemenang, dan menentukan MVP pertandingan.</p>
+        <div class="form-group">
+          <label for="input-pin">PIN Keamanan</label>
+          <input type="password" id="input-pin" class="form-input text-center" placeholder="••••" maxlength="6" inputmode="numeric" autofocus required>
+          <span class="input-hint">Default PIN: <strong>1234</strong></span>
+        </div>
+        <div class="error-msg" id="login-error"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-login">Batal</button>
+          <button type="submit" class="btn btn-primary">Masuk Admin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Match Control & MVP Modal (Admin Only, Touch Bottom-Sheet on Mobile) -->
+  <div class="modal-backdrop" id="modal-match">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="match-badge" id="modal-match-round">ROUND 1</span>
+          <h2 id="modal-match-title">Pengaturan Pertandingan</h2>
+        </div>
+        <button class="modal-close" data-close="modal-match">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Status & Format Row -->
+        <div class="match-settings-row">
+          <div class="form-group inline-group">
+            <label>Status:</label>
+            <div class="status-selector">
+              <button type="button" class="status-btn" data-status="UPCOMING">Menunggu</button>
+              <button type="button" class="status-btn" data-status="LIVE">🔴 LIVE</button>
+              <button type="button" class="status-btn" data-status="COMPLETED">✅ Selesai</button>
+            </div>
+          </div>
+          <div class="form-group inline-group">
+            <label>Format:</label>
+            <select id="modal-best-of" class="form-select">
+              <option value="1">BO1</option>
+              <option value="3" selected>BO3</option>
+              <option value="5">BO5</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Scoreboard vs Layout -->
+        <div class="scoreboard-grid">
+          <!-- Team 1 Card -->
+          <div class="team-score-card" id="card-team1">
+            <div class="team-seed" id="modal-seed1">#8</div>
+            <div class="team-name" id="modal-name1">Airmadidi</div>
+            <div class="score-control">
+              <button type="button" class="score-btn" id="btn-t1-dec">−</button>
+              <span class="score-val" id="val-score1">0</span>
+              <button type="button" class="score-btn" id="btn-t1-inc">+</button>
+            </div>
+            <button type="button" class="btn btn-outline-win" id="btn-pick-win1">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              <span>Pemenang</span>
+            </button>
+          </div>
+
+          <!-- VS Divider with Quick Score Presets -->
+          <div class="vs-divider">
+            <span class="vs-text">VS</span>
+            <div class="quick-scores" id="quick-presets">
+              <span class="preset-label">Preset:</span>
+              <div class="preset-buttons">
+                <button type="button" class="preset-btn" data-s1="2" data-s2="0">2 - 0</button>
+                <button type="button" class="preset-btn" data-s1="2" data-s2="1">2 - 1</button>
+                <button type="button" class="preset-btn" data-s1="1" data-s2="2">1 - 2</button>
+                <button type="button" class="preset-btn" data-s1="0" data-s2="2">0 - 2</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team 2 Card -->
+          <div class="team-score-card" id="card-team2">
+            <div class="team-seed" id="modal-seed2">#9</div>
+            <div class="team-name" id="modal-name2">RSUD ( Daong Lemong )</div>
+            <div class="score-control">
+              <button type="button" class="score-btn" id="btn-t2-dec">−</button>
+              <span class="score-val" id="val-score2">0</span>
+              <button type="button" class="score-btn" id="btn-t2-inc">+</button>
+            </div>
+            <button type="button" class="btn btn-outline-win" id="btn-pick-win2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              <span>Pemenang</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MVP Section -->
+        <div class="mvp-section">
+          <div class="mvp-section-header">
+            <div class="mvp-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <h3>Most Valuable Player (MVP) Laga</h3>
+            </div>
+            <button type="button" class="btn-text-sm" id="btn-clear-mvp">Hapus MVP</button>
+          </div>
+
+          <div class="mvp-fields-grid">
+            <div class="form-group">
+              <label for="mvp-player">Nama / In-Game Nickname</label>
+              <input type="text" id="mvp-player" class="form-input" placeholder="Contoh: Kairi, Sanz, Ryuzaki...">
+            </div>
+
+            <div class="form-group">
+              <label for="mvp-hero">Hero MLBB</label>
+              <input type="text" id="mvp-hero" class="form-input" placeholder="Contoh: Fanny, Nolan, Ling...">
+              <!-- Quick Hero Tags -->
+              <div class="quick-hero-tags">
+                <span class="hero-chip">Fanny</span>
+                <span class="hero-chip">Ling</span>
+                <span class="hero-chip">Hayabusa</span>
+                <span class="hero-chip">Nolan</span>
+                <span class="hero-chip">Fredrinn</span>
+                <span class="hero-chip">Harith</span>
+                <span class="hero-chip">Beatrix</span>
+                <span class="hero-chip">Chou</span>
+                <span class="hero-chip">Tigreal</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="mvp-kda">Statistik KDA</label>
+              <input type="text" id="mvp-kda" class="form-input" placeholder="Contoh: 11 / 1 / 6">
+            </div>
+
+            <div class="form-group">
+              <label for="mvp-note">Catatan / Momen Heroik</label>
+              <input type="text" id="mvp-note" class="form-input" placeholder="Contoh: Savage di Lord Pit & Penentu Game!">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions space-between">
+        <button type="button" class="btn btn-secondary" id="btn-clear-winner">Reset Laga</button>
+        <div class="right-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-match">Batal</button>
+          <button type="button" class="btn btn-primary" id="btn-save-match">Simpan Skor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
