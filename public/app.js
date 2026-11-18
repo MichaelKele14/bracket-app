@@ -84,9 +84,15 @@
   const cardTeam2 = document.getElementById('card-team2');
 
   const mvpPlayerInput = document.getElementById('mvp-player');
+  const mvpTeamSelect = document.getElementById('mvp-team');
   const mvpHeroInput = document.getElementById('mvp-hero');
   const mvpKdaInput = document.getElementById('mvp-kda');
   const mvpNoteInput = document.getElementById('mvp-note');
+  const mvpActiveLabel = document.getElementById('mvp-active-label');
+
+  const modalScheduleInput = document.getElementById('modal-schedule');
+  const modalScheduleDt = document.getElementById('modal-schedule-dt');
+  const modalViewerDetail = document.getElementById('modal-viewer-detail');
 
   // URL parameters check
   const urlParams = new URLSearchParams(window.location.search);
@@ -356,6 +362,14 @@
       `;
       card.appendChild(header);
 
+      // Schedule Banner (if scheduled)
+      if (match.schedule && match.schedule.trim()) {
+        const schedBanner = document.createElement('div');
+        schedBanner.className = 'm-schedule-banner';
+        schedBanner.innerHTML = `📅 <span>${escapeHtml(match.schedule)}</span>`;
+        card.appendChild(schedBanner);
+      }
+
       // Team 1 Row
       const t1Row = createMobileTeamRow(match, match.team1, match.score1, match.winnerId === match.team1?.id);
       card.appendChild(t1Row);
@@ -364,15 +378,10 @@
       const t2Row = createMobileTeamRow(match, match.team2, match.score2, match.winnerId === match.team2?.id);
       card.appendChild(t2Row);
 
-      // MVP Badge (if awarded)
-      if (match.mvp && match.mvp.name) {
-        const mvpPill = document.createElement('div');
-        mvpPill.className = 'match-mvp-badge';
-        mvpPill.innerHTML = `
-          <svg class="mvp-icon-star" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          <span class="mvp-badge-text"><strong>MVP:</strong> ${escapeHtml(match.mvp.name)}${match.mvp.hero ? ` (${escapeHtml(match.mvp.hero)})` : ''}${match.mvp.kda ? ` • ${escapeHtml(match.mvp.kda)}` : ''}</span>
-        `;
-        card.appendChild(mvpPill);
+      // Multi-Game MVP List (if awarded)
+      const mvpListEl = renderMvpListElement(match);
+      if (mvpListEl) {
+        card.appendChild(mvpListEl);
       }
 
       // Card Footer with Next Path & Admin Edit Button
@@ -392,15 +401,47 @@
         <button class="m-admin-quick-btn" title="Kelola Skor & MVP">⚙️ Atur Laga</button>
       `;
 
-      // Click card or admin button to edit
-      card.addEventListener('click', (e) => {
-        if (!document.body.classList.contains('mode-admin')) return;
-        openMatchEditor(match);
+      // Click card or admin button to edit or view detail
+      card.addEventListener('click', () => {
+        if (document.body.classList.contains('mode-admin')) {
+          openMatchEditor(match);
+        } else {
+          openViewerDetail(match);
+        }
       });
 
       card.appendChild(footer);
       mobileCardsList.appendChild(card);
     });
+  }
+
+  function getMatchMvps(match) {
+    if (Array.isArray(match.gameMvps) && match.gameMvps.length > 0) {
+      const valid = match.gameMvps.filter(g => g && g.name && g.name.trim());
+      if (valid.length > 0) {
+        return valid.sort((a, b) => (a.game || 1) - (b.game || 1));
+      }
+    }
+    if (match.mvp && match.mvp.name && match.mvp.name.trim()) {
+      return [{ game: 1, ...match.mvp }];
+    }
+    return [];
+  }
+
+  function renderMvpListElement(match) {
+    const mvps = getMatchMvps(match);
+    if (mvps.length === 0) return null;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'match-mvp-list';
+    wrap.innerHTML = mvps.map(g => `
+      <div class="match-mvp-item" title="${escapeHtml(g.note || '')}">
+        <span class="mvp-game-pill">G${g.game || 1}</span>
+        <svg class="mvp-icon-star" width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span class="mvp-item-text"><strong>${escapeHtml(g.name)}</strong>${g.hero ? ` (${escapeHtml(g.hero)})` : ''}${g.kda ? ` • ${escapeHtml(g.kda)}` : ''}</span>
+      </div>
+    `).join('');
+    return wrap;
   }
 
   function createMobileTeamRow(match, team, score, isWinner) {
@@ -459,9 +500,12 @@
     card.dataset.matchId = match.id;
 
     card.addEventListener('click', (e) => {
-      if (!document.body.classList.contains('mode-admin')) return;
       if (e.target.closest('.drag-handle')) return;
-      openMatchEditor(match);
+      if (document.body.classList.contains('mode-admin')) {
+        openMatchEditor(match);
+      } else {
+        openViewerDetail(match);
+      }
     });
 
     const meta = document.createElement('div');
@@ -474,6 +518,13 @@
     `;
     card.appendChild(meta);
 
+    if (match.schedule && match.schedule.trim()) {
+      const schedRow = document.createElement('div');
+      schedRow.className = 'match-schedule-row';
+      schedRow.innerHTML = `📅 <span>${escapeHtml(match.schedule)}</span>`;
+      card.appendChild(schedRow);
+    }
+
     const teamsWrap = document.createElement('div');
     teamsWrap.className = 'match-teams';
 
@@ -485,14 +536,9 @@
 
     card.appendChild(teamsWrap);
 
-    if (match.mvp && match.mvp.name) {
-      const mvpPill = document.createElement('div');
-      mvpPill.className = 'match-mvp-badge';
-      mvpPill.innerHTML = `
-        <svg class="mvp-icon-star" width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <span class="mvp-badge-text"><strong>MVP:</strong> ${escapeHtml(match.mvp.name)}${match.mvp.hero ? ` (${escapeHtml(match.mvp.hero)})` : ''}${match.mvp.kda ? ` • ${escapeHtml(match.mvp.kda)}` : ''}</span>
-      `;
-      card.appendChild(mvpPill);
+    const mvpListEl = renderMvpListElement(match);
+    if (mvpListEl) {
+      card.appendChild(mvpListEl);
     }
 
     return card;
@@ -685,12 +731,80 @@
   }
 
   // =========================================================================
-  // MATCH CONTROL MODAL (ADMIN)
+  // MATCH CONTROL MODAL (ADMIN) & VIEWER DETAIL MODAL
   // =========================================================================
   let tempScore1 = 0;
   let tempScore2 = 0;
   let tempWinnerId = null;
   let tempStatus = 'UPCOMING';
+  let activeMvpGameTab = 1;
+  let tempGameMvps = {};
+
+  function emptyMvpObj(gameNum) {
+    return { game: gameNum, name: '', team: '', hero: '', kda: '', note: '' };
+  }
+
+  function populateMvpTeamSelect(match) {
+    if (!mvpTeamSelect) return;
+    mvpTeamSelect.innerHTML = '<option value="">-- Pilih Tim --</option>';
+    if (match.team1 && match.team1.name) {
+      const opt1 = document.createElement('option');
+      opt1.value = match.team1.name;
+      opt1.textContent = `#${match.team1.seed} ${match.team1.name}`;
+      mvpTeamSelect.appendChild(opt1);
+    }
+    if (match.team2 && match.team2.name) {
+      const opt2 = document.createElement('option');
+      opt2.value = match.team2.name;
+      opt2.textContent = `#${match.team2.seed} ${match.team2.name}`;
+      mvpTeamSelect.appendChild(opt2);
+    }
+  }
+
+  function saveCurrentMvpTabInputs() {
+    if (!tempGameMvps[activeMvpGameTab]) {
+      tempGameMvps[activeMvpGameTab] = emptyMvpObj(activeMvpGameTab);
+    }
+    tempGameMvps[activeMvpGameTab].name = mvpPlayerInput.value.trim();
+    tempGameMvps[activeMvpGameTab].team = mvpTeamSelect ? mvpTeamSelect.value : '';
+    tempGameMvps[activeMvpGameTab].hero = mvpHeroInput.value.trim();
+    tempGameMvps[activeMvpGameTab].kda = mvpKdaInput.value.trim();
+    tempGameMvps[activeMvpGameTab].note = mvpNoteInput.value.trim();
+    updateMvpTabDots();
+  }
+
+  function loadMvpTabInputs(gameNum) {
+    activeMvpGameTab = gameNum;
+    const gData = tempGameMvps[gameNum] || emptyMvpObj(gameNum);
+    mvpPlayerInput.value = gData.name || '';
+    if (mvpTeamSelect) mvpTeamSelect.value = gData.team || '';
+    mvpHeroInput.value = gData.hero || '';
+    mvpKdaInput.value = gData.kda || '';
+    mvpNoteInput.value = gData.note || '';
+
+    if (mvpActiveLabel) {
+      mvpActiveLabel.innerHTML = `⭐ Mengisi Data MVP untuk <strong>GAME ${gameNum}</strong>`;
+    }
+
+    document.querySelectorAll('.mvp-tab-btn').forEach(btn => {
+      const g = parseInt(btn.dataset.game, 10);
+      btn.classList.toggle('active', g === gameNum);
+    });
+    updateMvpTabDots();
+  }
+
+  function updateMvpTabDots() {
+    const bo = parseInt(modalBestOf.value, 10) || 3;
+    document.querySelectorAll('.mvp-tab-btn').forEach(btn => {
+      const g = parseInt(btn.dataset.game, 10);
+      btn.style.display = g <= bo ? '' : 'none';
+      const dot = document.getElementById(`mvp-tab-dot-${g}`);
+      if (dot) {
+        const hasName = tempGameMvps[g] && tempGameMvps[g].name && tempGameMvps[g].name.trim().length > 0;
+        dot.classList.toggle('filled', !!hasName);
+      }
+    });
+  }
 
   function openMatchEditor(match) {
     activeEditingMatch = match;
@@ -703,6 +817,9 @@
     modalMatchTitle.textContent = `${match.team1 ? match.team1.name : 'TBD'} vs ${match.team2 ? match.team2.name : 'TBD'}`;
     modalBestOf.value = match.bestOf || 3;
 
+    if (modalScheduleInput) modalScheduleInput.value = match.schedule || '';
+    if (modalScheduleDt) modalScheduleDt.value = '';
+
     modalSeed1.textContent = match.team1 ? `#${match.team1.seed}` : '?';
     modalName1.textContent = match.team1 ? match.team1.name : 'Menunggu Pemenang';
     valScore1.textContent = tempScore1;
@@ -711,13 +828,106 @@
     modalName2.textContent = match.team2 ? match.team2.name : 'Menunggu Pemenang';
     valScore2.textContent = tempScore2;
 
-    mvpPlayerInput.value = match.mvp ? match.mvp.name || '' : '';
-    mvpHeroInput.value = match.mvp ? match.mvp.hero || '' : '';
-    mvpKdaInput.value = match.mvp ? match.mvp.kda || '' : '';
-    mvpNoteInput.value = match.mvp ? match.mvp.note || '' : '';
+    populateMvpTeamSelect(match);
 
+    // Initialize Multi-Game MVPs (Game 1..5)
+    tempGameMvps = {
+      1: emptyMvpObj(1),
+      2: emptyMvpObj(2),
+      3: emptyMvpObj(3),
+      4: emptyMvpObj(4),
+      5: emptyMvpObj(5)
+    };
+
+    const existingMvps = getMatchMvps(match);
+    existingMvps.forEach(item => {
+      const g = item.game || 1;
+      if (g >= 1 && g <= 5) {
+        tempGameMvps[g] = {
+          game: g,
+          name: item.name || '',
+          team: item.team || '',
+          hero: item.hero || '',
+          kda: item.kda || '',
+          note: item.note || ''
+        };
+      }
+    });
+
+    loadMvpTabInputs(1);
     updateModalUI();
     modalMatch.classList.add('is-open');
+  }
+
+  function openViewerDetail(match) {
+    if (!modalViewerDetail) return;
+    const roundEl = document.getElementById('v-detail-round');
+    const titleEl = document.getElementById('v-detail-title');
+    const bodyEl = document.getElementById('v-detail-body');
+
+    roundEl.textContent = `${match.roundName || `ROUND ${match.round}`} • BO${match.bestOf || 3}`;
+    titleEl.textContent = `Detail Pertandingan (${match.id.toUpperCase()})`;
+
+    const t1Name = match.team1 ? escapeHtml(match.team1.name) : 'Menunggu Pemenang';
+    const t2Name = match.team2 ? escapeHtml(match.team2.name) : 'Menunggu Pemenang';
+    const t1Seed = match.team1 ? `#${match.team1.seed}` : '?';
+    const t2Seed = match.team2 ? `#${match.team2.seed}` : '?';
+    const t1Win = match.team1 && match.winnerId === match.team1.id;
+    const t2Win = match.team2 && match.winnerId === match.team2.id;
+
+    const mvps = getMatchMvps(match);
+
+    bodyEl.innerHTML = `
+      ${match.schedule && match.schedule.trim() ? `
+        <div class="v-detail-sched-box">
+          <span>📅</span>
+          <div>
+            <div style="font-size:10px; opacity:0.8; text-transform:uppercase;">Jadwal Pelaksanaan</div>
+            <div>${escapeHtml(match.schedule)}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="v-detail-score-box">
+        <div class="v-detail-team ${t1Win ? 'winner' : ''}">
+          <div class="v-t-seed">${t1Seed}</div>
+          <div class="v-t-name">${t1Name} ${t1Win ? '🏆' : ''}</div>
+        </div>
+        <div class="v-detail-vs">${match.score1 || 0} - ${match.score2 || 0}</div>
+        <div class="v-detail-team ${t2Win ? 'winner' : ''}">
+          <div class="v-t-seed">${t2Seed}</div>
+          <div class="v-t-name">${t2Name} ${t2Win ? '🏆' : ''}</div>
+        </div>
+      </div>
+
+      ${mvps.length > 0 ? `
+        <div style="margin-bottom:8px; font-size:11px; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px;">
+          ⭐ Daftar MVP Per Game (${mvps.length} Game)
+        </div>
+        <div class="v-mvp-cards-wrap">
+          ${mvps.map(g => `
+            <div class="v-mvp-card">
+              <div class="v-mvp-card-head">
+                <span>🏆 GAME ${g.game || 1} MVP</span>
+                <span>${g.team ? escapeHtml(g.team) : ''}</span>
+              </div>
+              <div class="v-mvp-card-main">
+                ${escapeHtml(g.name)}
+                ${g.hero ? `<span style="color:#38bdf8; font-weight:600;"> • ${escapeHtml(g.hero)}</span>` : ''}
+                ${g.kda ? `<span style="color:#94a3b8; font-family:var(--font-mono); font-size:11.5px;"> (${escapeHtml(g.kda)})</span>` : ''}
+              </div>
+              ${g.note ? `<div class="v-mvp-card-note">"${escapeHtml(g.note)}"</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : `
+        <div style="text-align:center; padding:14px; color:var(--text-dim); font-size:12px; border:1px dashed var(--border-subtle); border-radius:8px;">
+          Belum ada catatan MVP untuk pertandingan ini.
+        </div>
+      `}
+    `;
+
+    modalViewerDetail.classList.add('is-open');
   }
 
   function updateModalUI() {
@@ -735,7 +945,73 @@
     document.querySelectorAll('.status-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.status === tempStatus);
     });
+    updateMvpTabDots();
   }
+
+  // Schedule Date-Time Picker & Quick Chips
+  if (modalScheduleDt) {
+    modalScheduleDt.addEventListener('change', () => {
+      if (!modalScheduleDt.value) return;
+      const dt = new Date(modalScheduleDt.value);
+      if (isNaN(dt.getTime())) return;
+      const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][dt.getDay()];
+      const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][dt.getMonth()];
+      const tgl = dt.getDate();
+      const thn = dt.getFullYear();
+      const jam = String(dt.getHours()).padStart(2, '0');
+      const mnt = String(dt.getMinutes()).padStart(2, '0');
+      modalScheduleInput.value = `${hari}, ${tgl} ${bulan} ${thn} • ${jam}:${mnt} WITA`;
+    });
+  }
+
+  document.querySelectorAll('.sched-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const timeStr = chip.dataset.time;
+      const curVal = modalScheduleInput.value.trim();
+      if (curVal.includes('•')) {
+        const datePart = curVal.split('•')[0].trim();
+        modalScheduleInput.value = `${datePart} • ${timeStr}`;
+      } else if (curVal) {
+        modalScheduleInput.value = `${curVal} • ${timeStr}`;
+      } else {
+        modalScheduleInput.value = timeStr;
+      }
+    });
+  });
+
+  const btnClearSchedule = document.getElementById('btn-clear-schedule');
+  if (btnClearSchedule) {
+    btnClearSchedule.addEventListener('click', () => {
+      if (modalScheduleInput) modalScheduleInput.value = '';
+      if (modalScheduleDt) modalScheduleDt.value = '';
+    });
+  }
+
+  // Multi-Game MVP Tab Switching & Live Input Sync
+  document.querySelectorAll('.mvp-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      saveCurrentMvpTabInputs();
+      const nextGame = parseInt(btn.dataset.game, 10) || 1;
+      loadMvpTabInputs(nextGame);
+    });
+  });
+
+  [mvpPlayerInput, mvpHeroInput, mvpKdaInput, mvpNoteInput].forEach(inp => {
+    if (inp) inp.addEventListener('input', saveCurrentMvpTabInputs);
+  });
+  if (mvpTeamSelect) {
+    mvpTeamSelect.addEventListener('change', saveCurrentMvpTabInputs);
+  }
+
+  modalBestOf.addEventListener('change', () => {
+    saveCurrentMvpTabInputs();
+    const bo = parseInt(modalBestOf.value, 10) || 3;
+    if (activeMvpGameTab > bo) {
+      loadMvpTabInputs(1);
+    } else {
+      updateMvpTabDots();
+    }
+  });
 
   document.getElementById('btn-t1-dec').addEventListener('click', () => {
     if (tempScore1 > 0) { tempScore1--; updateModalUI(); }
@@ -800,28 +1076,41 @@
   document.querySelectorAll('.hero-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       mvpHeroInput.value = chip.textContent;
+      saveCurrentMvpTabInputs();
     });
   });
 
   document.getElementById('btn-clear-mvp').addEventListener('click', () => {
     mvpPlayerInput.value = '';
+    if (mvpTeamSelect) mvpTeamSelect.value = '';
     mvpHeroInput.value = '';
     mvpKdaInput.value = '';
     mvpNoteInput.value = '';
+    saveCurrentMvpTabInputs();
   });
 
   document.getElementById('btn-save-match').addEventListener('click', async () => {
     if (!activeEditingMatch) return;
 
-    let mvpData = null;
-    if (mvpPlayerInput.value.trim()) {
-      mvpData = {
-        name: mvpPlayerInput.value.trim(),
-        hero: mvpHeroInput.value.trim(),
-        kda: mvpKdaInput.value.trim(),
-        note: mvpNoteInput.value.trim()
-      };
+    saveCurrentMvpTabInputs();
+    const bo = parseInt(modalBestOf.value, 10) || 3;
+    const gameMvpsList = [];
+    for (let g = 1; g <= bo; g++) {
+      const entry = tempGameMvps[g];
+      if (entry && entry.name && entry.name.trim()) {
+        gameMvpsList.push({
+          game: g,
+          name: entry.name.trim(),
+          team: entry.team || '',
+          hero: entry.hero || '',
+          kda: entry.kda || '',
+          note: entry.note || ''
+        });
+      }
     }
+
+    const primaryMvp = gameMvpsList.length > 0 ? gameMvpsList[0] : null;
+    const scheduleVal = modalScheduleInput ? modalScheduleInput.value.trim() : '';
 
     try {
       const res = await fetch('/api/match/update', {
@@ -834,10 +1123,12 @@
           matchId: activeEditingMatch.id,
           score1: tempScore1,
           score2: tempScore2,
-          bestOf: parseInt(modalBestOf.value, 10),
+          bestOf: bo,
           status: tempStatus,
           winnerId: tempWinnerId,
-          mvp: mvpData
+          schedule: scheduleVal,
+          gameMvps: gameMvpsList,
+          mvp: primaryMvp
         })
       });
 
@@ -846,12 +1137,12 @@
         bracketData = data.bracket;
         renderAll();
         modalMatch.classList.remove('is-open');
-        showToast('Skor pertandingan berhasil disimpan!');
+        showToast('Perubahan laga, jadwal & MVP berhasil disimpan!');
       } else {
-        showToast(data.error || 'Gagal menyimpan skor');
+        showToast(data.error || 'Gagal menyimpan perubahan');
       }
     } catch {
-      showToast('Koneksi terputus saat menyimpan skor');
+      showToast('Koneksi terputus saat menyimpan perubahan');
     }
   });
 

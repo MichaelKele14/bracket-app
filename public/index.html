@@ -308,6 +308,24 @@
           </div>
         </div>
 
+        <!-- Schedule / Tanggal Pertandingan Row -->
+        <div class="schedule-section">
+          <div class="schedule-header">
+            <label for="modal-schedule">📅 Jadwal & Tanggal Pelaksanaan Match:</label>
+            <button type="button" class="btn-text-sm" id="btn-clear-schedule">Hapus Jadwal</button>
+          </div>
+          <div class="schedule-inputs-grid">
+            <input type="text" id="modal-schedule" class="form-input" placeholder="Ketik jadwal atau pilih kalender di samping (Cth: Kamis, 20 Nov • 15:00 WITA)">
+            <input type="datetime-local" id="modal-schedule-dt" class="form-input dt-picker-input" title="Pilih Tanggal & Jam dari Kalender">
+          </div>
+          <div class="quick-schedule-tags">
+            <span class="sched-chip" data-time="14:00 WITA">Pukul 14:00 WITA</span>
+            <span class="sched-chip" data-time="15:30 WITA">Pukul 15:30 WITA</span>
+            <span class="sched-chip" data-time="17:00 WITA">Pukul 17:00 WITA</span>
+            <span class="sched-chip" data-time="19:30 WITA">Pukul 19:30 WITA</span>
+          </div>
+        </div>
+
         <!-- Scoreboard vs Layout -->
         <div class="scoreboard-grid">
           <!-- Team 1 Card -->
@@ -355,20 +373,55 @@
           </div>
         </div>
 
-        <!-- MVP Section -->
+        <!-- Multi-Game MVP Section (Game 1, Game 2, Game 3...) -->
         <div class="mvp-section">
           <div class="mvp-section-header">
             <div class="mvp-title">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <h3>Most Valuable Player (MVP) Laga</h3>
+              <h3>Most Valuable Player (MVP) Per Game</h3>
             </div>
-            <button type="button" class="btn-text-sm" id="btn-clear-mvp">Hapus MVP</button>
+            <button type="button" class="btn-text-sm" id="btn-clear-mvp">Hapus MVP Game Ini</button>
+          </div>
+
+          <!-- Game Selector Tabs -->
+          <div class="mvp-game-tabs" id="mvp-game-tabs">
+            <button type="button" class="mvp-tab-btn active" data-game="1">
+              <span class="tab-g-num">Game 1</span>
+              <span class="tab-g-status" id="mvp-tab-dot-1"></span>
+            </button>
+            <button type="button" class="mvp-tab-btn" data-game="2">
+              <span class="tab-g-num">Game 2</span>
+              <span class="tab-g-status" id="mvp-tab-dot-2"></span>
+            </button>
+            <button type="button" class="mvp-tab-btn" data-game="3">
+              <span class="tab-g-num">Game 3</span>
+              <span class="tab-g-status" id="mvp-tab-dot-3"></span>
+            </button>
+            <button type="button" class="mvp-tab-btn" data-game="4" style="display:none;">
+              <span class="tab-g-num">Game 4</span>
+              <span class="tab-g-status" id="mvp-tab-dot-4"></span>
+            </button>
+            <button type="button" class="mvp-tab-btn" data-game="5" style="display:none;">
+              <span class="tab-g-num">Game 5</span>
+              <span class="tab-g-status" id="mvp-tab-dot-5"></span>
+            </button>
+          </div>
+
+          <div class="mvp-active-game-info" id="mvp-active-label">
+            ⭐ Mengisi Data MVP untuk <strong>GAME 1</strong>
           </div>
 
           <div class="mvp-fields-grid">
             <div class="form-group">
-              <label for="mvp-player">Nama / In-Game Nickname</label>
+              <label for="mvp-player">Nama / Nickname Pemain (MVP Game Ini)</label>
               <input type="text" id="mvp-player" class="form-input" placeholder="Contoh: Kairi, Sanz, Ryuzaki...">
+            </div>
+
+            <div class="form-group">
+              <label for="mvp-team">Asal Tim Pemain</label>
+              <select id="mvp-team" class="form-select">
+                <option value="">-- Pilih Tim --</option>
+              </select>
             </div>
 
             <div class="form-group">
@@ -380,7 +433,8 @@
                 <span class="hero-chip">Ling</span>
                 <span class="hero-chip">Hayabusa</span>
                 <span class="hero-chip">Nolan</span>
-                <span class="hero-chip">Fredrinn</span>
+                <span class="hero-chip">Suyou</span>
+                <span class="hero-chip">Joy</span>
                 <span class="hero-chip">Harith</span>
                 <span class="hero-chip">Beatrix</span>
                 <span class="hero-chip">Chou</span>
@@ -393,9 +447,9 @@
               <input type="text" id="mvp-kda" class="form-input" placeholder="Contoh: 11 / 1 / 6">
             </div>
 
-            <div class="form-group">
+            <div class="form-group mvp-full-col">
               <label for="mvp-note">Catatan / Momen Heroik</label>
-              <input type="text" id="mvp-note" class="form-input" placeholder="Contoh: Savage di Lord Pit & Penentu Game!">
+              <input type="text" id="mvp-note" class="form-input" placeholder="Contoh: Savage di Lord Pit & Penentu Kemenangan!">
             </div>
           </div>
         </div>
@@ -405,8 +459,25 @@
         <button type="button" class="btn btn-secondary" id="btn-clear-winner">Reset Laga</button>
         <div class="right-actions">
           <button type="button" class="btn btn-secondary" data-close="modal-match">Batal</button>
-          <button type="button" class="btn btn-primary" id="btn-save-match">Simpan Skor</button>
+          <button type="button" class="btn btn-primary" id="btn-save-match">Simpan Perubahan</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Viewer Match Details Modal (For Penonton clicking a match card) -->
+  <div class="modal-backdrop" id="modal-viewer-detail">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="match-badge" id="v-detail-round">ROUND 1</span>
+          <h2 id="v-detail-title">Detail Pertandingan</h2>
+        </div>
+        <button class="modal-close" data-close="modal-viewer-detail">&times;</button>
+      </div>
+      <div class="modal-body" id="v-detail-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" data-close="modal-viewer-detail">Tutup</button>
       </div>
     </div>
   </div>

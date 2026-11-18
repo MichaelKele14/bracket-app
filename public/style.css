@@ -1549,3 +1549,299 @@ body.mode-overlay .match-card {
   background: rgba(11, 18, 25, 0.94) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7) !important;
 }
+
+/* =========================================================================
+   MATCH SCHEDULE & MULTI-GAME MVP STYLES
+========================================================================= */
+
+/* Schedule Section inside Match Modal */
+.schedule-section {
+  background: rgba(18, 27, 36, 0.65);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.schedule-header label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.schedule-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dt-picker-input {
+  width: 175px;
+  font-size: 12px;
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.quick-schedule-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sched-chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  color: #67e8f9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sched-chip:hover {
+  background: rgba(6, 182, 212, 0.22);
+  border-color: var(--accent-cyan);
+  color: #fff;
+}
+
+/* Match Schedule Row on Bracket Cards */
+.match-schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(6, 182, 212, 0.08);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.15);
+  font-size: 10px;
+  font-weight: 600;
+  color: #67e8f9;
+  line-height: 1.25;
+}
+
+.m-schedule-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  font-size: 11px;
+  font-weight: 600;
+  color: #67e8f9;
+}
+
+/* Multi-Game MVP Tabs */
+.mvp-game-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.mvp-tab-btn {
+  flex: 1;
+  min-width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.mvp-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.mvp-tab-btn.active {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: #f59e0b;
+  color: #fcd34d;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+.tab-g-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.tab-g-status.filled {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.mvp-active-game-info {
+  font-size: 11px;
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid #f59e0b;
+  padding: 6px 10px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 12px;
+}
+
+.mvp-full-col {
+  grid-column: 1 / -1;
+}
+
+/* Multi-MVP List on Match Cards */
+.match-mvp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  background: rgba(245, 158, 11, 0.06);
+  border-top: 1px solid rgba(245, 158, 11, 0.18);
+}
+
+.match-mvp-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #fde68a;
+  line-height: 1.3;
+}
+
+.mvp-game-pill {
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.mvp-item-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Viewer Detail Modal */
+.v-detail-sched-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: #67e8f9;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.v-detail-score-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(18, 27, 36, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.v-detail-team {
+  flex: 1;
+  text-align: center;
+}
+
+.v-detail-team.winner .v-t-name {
+  color: var(--accent-emerald);
+}
+
+.v-t-seed {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-cyan);
+  margin-bottom: 2px;
+}
+
+.v-t-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.v-detail-vs {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  padding: 0 14px;
+}
+
+.v-mvp-cards-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v-mvp-card {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.v-mvp-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.v-mvp-card-main {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.v-mvp-card-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .schedule-inputs-grid {
+    grid-template-columns: 1fr;
+  }
+  .dt-picker-input {
+    width: 100%;
+  }
+}

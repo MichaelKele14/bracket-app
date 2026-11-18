@@ -187,7 +187,7 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const payload = await parseJsonBody(req);
-      const { matchId, score1, score2, status, winnerId, mvp, bestOf } = payload;
+      const { matchId, score1, score2, status, winnerId, mvp, bestOf, schedule, gameMvps } = payload;
       const match = bracketState.matches.find(m => m.id === matchId);
       if (!match) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -199,6 +199,8 @@ const server = http.createServer(async (req, res) => {
       if (typeof score2 === 'number') match.score2 = score2;
       if (typeof bestOf === 'number') match.bestOf = bestOf;
       if (status) match.status = status;
+      if (schedule !== undefined) match.schedule = schedule;
+      if (gameMvps !== undefined) match.gameMvps = gameMvps;
       if (mvp !== undefined) match.mvp = mvp;
 
       if (winnerId !== undefined) {
@@ -276,6 +278,7 @@ const server = http.createServer(async (req, res) => {
         m.status = 'UPCOMING';
         m.winnerId = null;
         m.mvp = null;
+        m.gameMvps = [];
         if (m.round > 1) {
           if (m.id === 'r2_m1') {
             m.team2 = null;
