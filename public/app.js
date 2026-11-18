@@ -276,7 +276,7 @@
   // --- Fetch Bracket Data ---
   async function loadBracket() {
     try {
-      const res = await fetch('/api/bracket');
+      const res = await fetch('/api/bracket?t=' + Date.now(), { cache: 'no-store' });
       bracketData = await res.json();
       renderAll();
     } catch (err) {
@@ -1041,18 +1041,49 @@
     }
   });
 
+  function autoSyncWinnerFromScore() {
+    if (!activeEditingMatch) return;
+    const bo = parseInt(modalBestOf.value, 10) || 3;
+    const targetWins = Math.ceil(bo / 2);
+
+    if (tempScore1 >= targetWins && tempScore1 > tempScore2 && activeEditingMatch.team1) {
+      tempWinnerId = activeEditingMatch.team1.id;
+      tempStatus = 'COMPLETED';
+    } else if (tempScore2 >= targetWins && tempScore2 > tempScore1 && activeEditingMatch.team2) {
+      tempWinnerId = activeEditingMatch.team2.id;
+      tempStatus = 'COMPLETED';
+    } else {
+      tempWinnerId = null;
+      if (tempScore1 > 0 || tempScore2 > 0) {
+        if (tempStatus === 'UPCOMING') tempStatus = 'LIVE';
+      } else {
+        tempStatus = 'UPCOMING';
+      }
+    }
+  }
+
   document.getElementById('btn-t1-dec').addEventListener('click', () => {
-    if (tempScore1 > 0) { tempScore1--; updateModalUI(); }
+    if (tempScore1 > 0) {
+      tempScore1--;
+      autoSyncWinnerFromScore();
+      updateModalUI();
+    }
   });
   document.getElementById('btn-t1-inc').addEventListener('click', () => {
     tempScore1++;
+    autoSyncWinnerFromScore();
     updateModalUI();
   });
   document.getElementById('btn-t2-dec').addEventListener('click', () => {
-    if (tempScore2 > 0) { tempScore2--; updateModalUI(); }
+    if (tempScore2 > 0) {
+      tempScore2--;
+      autoSyncWinnerFromScore();
+      updateModalUI();
+    }
   });
   document.getElementById('btn-t2-inc').addEventListener('click', () => {
     tempScore2++;
+    autoSyncWinnerFromScore();
     updateModalUI();
   });
 
@@ -1097,6 +1128,13 @@
   document.querySelectorAll('.status-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       tempStatus = btn.dataset.status;
+      if (tempStatus === 'COMPLETED' && !tempWinnerId && activeEditingMatch) {
+        if (tempScore1 > tempScore2 && activeEditingMatch.team1) {
+          tempWinnerId = activeEditingMatch.team1.id;
+        } else if (tempScore2 > tempScore1 && activeEditingMatch.team2) {
+          tempWinnerId = activeEditingMatch.team2.id;
+        }
+      }
       updateModalUI();
     });
   });
@@ -1159,6 +1197,13 @@
           mvp: primaryMvp
         })
       });
+
+      if (res.status === 401) {
+        showToast('Sesi Admin kedaluwarsa, silakan masukkan PIN 1412 kembali');
+        modalMatch.classList.remove('is-open');
+        modalLogin.classList.add('is-open');
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {

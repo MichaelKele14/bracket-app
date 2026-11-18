@@ -10,26 +10,35 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 // Active Server-Sent Events (SSE) connections
 const sseClients = new Set();
 
-// Active admin sessions (simple token store)
+// Active admin sessions (supports both deterministic HMAC token and session tokens)
 const adminSessions = new Set();
+
+function getDeterministicToken(pin) {
+  return crypto.createHmac('sha256', 'hkn-mlbb-series1-secret-key')
+    .update(String(pin || '1412'))
+    .digest('hex');
+}
 
 function loadBracketData() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    bracketState = parsed;
+    return parsed;
   } catch (err) {
-    console.error('Error loading bracket data, falling back to default:', err);
-    return null;
+    console.error('Error loading bracket data, falling back to memory state:', err);
+    return bracketState;
   }
 }
 
 function saveBracketData(data) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-    broadcastUpdate(data);
-  } catch (err) {
-    console.error('Error saving bracket data:', err);
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  bracketState = data;
+  broadcastUpdate(data);
 }
 
 function broadcastUpdate(data) {
@@ -43,7 +52,8 @@ function broadcastUpdate(data) {
   }
 }
 
-let bracketState = loadBracketData();
+let bracketState = null;
+loadBracketData();
 
 // Helper to cascade winner into next matches
 function advanceWinner(state, matchId, winnerId) {
@@ -54,7 +64,7 @@ function advanceWinner(state, matchId, winnerId) {
   match.winnerId = winnerId;
 
   const winnerTeam = winnerId
-    ? (match.team1 && match.team1.id === winnerId ? match.team1 : match.team2)
+    ? (match.team1 && match.team1.id === winnerId ? match.team1 : (match.team2 && match.team2.id === winnerId ? match.team2 : null))
     : null;
 
   if (match.nextMatchId) {
@@ -62,12 +72,17 @@ function advanceWinner(state, matchId, winnerId) {
     if (nextMatch) {
       const slot = match.nextMatchSlot; // 'team1' or 'team2'
       if (winnerTeam) {
+        // If previous winner was different and had already won downstream, clear downstream
+        if (prevWinnerId && prevWinnerId !== winnerId && nextMatch.winnerId === prevWinnerId) {
+          advanceWinner(state, nextMatch.id, null);
+        }
         nextMatch[slot] = { ...winnerTeam };
       } else {
         // If winner cleared, clear downstream slot and if that match had that team as winner, clear it too recursively
-        if (nextMatch[slot] && prevWinnerId && nextMatch[slot].id === prevWinnerId) {
+        if (nextMatch[slot] && (!prevWinnerId || nextMatch[slot].id === prevWinnerId)) {
+          const clearedId = nextMatch[slot].id;
           nextMatch[slot] = null;
-          if (nextMatch.winnerId === prevWinnerId) {
+          if (nextMatch.winnerId && nextMatch.winnerId === clearedId) {
             advanceWinner(state, nextMatch.id, null);
           }
         }
@@ -96,7 +111,10 @@ function parseJsonBody(req) {
 function isAuthenticated(req) {
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-  return token && adminSessions.has(token);
+  if (!token) return false;
+  const current = loadBracketData();
+  const expected = getDeterministicToken(current ? current.adminPin : '1412');
+  return token === expected || adminSessions.has(token);
 }
 
 const MIME_TYPES = {
@@ -129,12 +147,14 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: SSE Live Event Stream ---
   if (pathname === '/api/events') {
+    const freshState = loadBracketData();
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      'Connection': 'keep-alive'
+      'Cache-Control': 'no-cache, no-store, no-transform, must-revalidate',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
     });
-    res.write(`data: ${JSON.stringify({ type: 'connected', bracket: bracketState })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'connected', bracket: freshState })}\n\n`);
     sseClients.add(res);
 
     req.on('close', () => {
@@ -145,17 +165,22 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: Get Current Bracket ---
   if (pathname === '/api/bracket' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(bracketState));
+    const freshState = loadBracketData();
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
+    res.end(JSON.stringify(freshState));
     return;
   }
 
   // --- API: Admin Login ---
   if (pathname === '/api/login' && req.method === 'POST') {
     try {
+      const freshState = loadBracketData();
       const { pin } = await parseJsonBody(req);
-      if (pin === bracketState.adminPin) {
-        const token = crypto.randomBytes(24).toString('hex');
+      if (String(pin).trim() === String(freshState.adminPin).trim()) {
+        const token = getDeterministicToken(freshState.adminPin);
         adminSessions.add(token);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, token }));
@@ -172,7 +197,10 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: Check Auth Status ---
   if (pathname === '/api/auth/check' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
     res.end(JSON.stringify({ authenticated: isAuthenticated(req) }));
     return;
   }
@@ -181,14 +209,15 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/match/update' && req.method === 'POST') {
     if (!isAuthenticated(req)) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Akses ditolak. Silakan login admin.' }));
+      res.end(JSON.stringify({ error: 'Akses ditolak. Silakan login admin kembali.' }));
       return;
     }
 
     try {
+      const currentState = loadBracketData();
       const payload = await parseJsonBody(req);
       const { matchId, score1, score2, status, winnerId, mvp, bestOf, schedule, gameMvps } = payload;
-      const match = bracketState.matches.find(m => m.id === matchId);
+      const match = currentState.matches.find(m => m.id === matchId);
       if (!match) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Match tidak ditemukan' }));
@@ -203,16 +232,30 @@ const server = http.createServer(async (req, res) => {
       if (gameMvps !== undefined) match.gameMvps = gameMvps;
       if (mvp !== undefined) match.mvp = mvp;
 
-      if (winnerId !== undefined) {
-        advanceWinner(bracketState, matchId, winnerId);
-        if (winnerId) {
+      // Auto-resolve winner if not explicitly chosen but score reached winning threshold or status is COMPLETED
+      let resolvedWinnerId = winnerId;
+      const targetWins = Math.ceil((match.bestOf || 3) / 2);
+      if (!resolvedWinnerId) {
+        if (match.score1 > match.score2 && (match.score1 >= targetWins || match.status === 'COMPLETED') && match.team1) {
+          resolvedWinnerId = match.team1.id;
+        } else if (match.score2 > match.score1 && (match.score2 >= targetWins || match.status === 'COMPLETED') && match.team2) {
+          resolvedWinnerId = match.team2.id;
+        }
+      }
+
+      if (resolvedWinnerId !== undefined) {
+        advanceWinner(currentState, matchId, resolvedWinnerId);
+        if (resolvedWinnerId) {
           match.status = 'COMPLETED';
         }
       }
 
-      saveBracketData(bracketState);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, bracket: bracketState }));
+      saveBracketData(currentState);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      });
+      res.end(JSON.stringify({ success: true, bracket: currentState }));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: err.message }));
@@ -229,9 +272,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     try {
+      const currentState = loadBracketData();
       const { sourceMatchId, sourceSlot, targetMatchId, targetSlot } = await parseJsonBody(req);
-      const srcMatch = bracketState.matches.find(m => m.id === sourceMatchId);
-      const tgtMatch = bracketState.matches.find(m => m.id === targetMatchId);
+      const srcMatch = currentState.matches.find(m => m.id === sourceMatchId);
+      const tgtMatch = currentState.matches.find(m => m.id === targetMatchId);
 
       if (!srcMatch || !tgtMatch) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -245,12 +289,15 @@ const server = http.createServer(async (req, res) => {
       tgtMatch[targetSlot] = temp;
 
       // Reset winners if affected
-      if (srcMatch.winnerId) advanceWinner(bracketState, srcMatch.id, null);
-      if (tgtMatch.winnerId) advanceWinner(bracketState, tgtMatch.id, null);
+      if (srcMatch.winnerId) advanceWinner(currentState, srcMatch.id, null);
+      if (tgtMatch.winnerId) advanceWinner(currentState, tgtMatch.id, null);
 
-      saveBracketData(bracketState);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, bracket: bracketState }));
+      saveBracketData(currentState);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      });
+      res.end(JSON.stringify({ success: true, bracket: currentState }));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: err.message }));
