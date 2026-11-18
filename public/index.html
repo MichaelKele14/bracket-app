@@ -39,7 +39,146 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261118_v4">
+  <style>
+    /* Critical Inline Styles for Schedule & Multi-Game MVP (Immune to Browser Cache) */
+    .schedule-section {
+      background: rgba(18, 27, 36, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .schedule-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .schedule-header label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #06b6d4;
+    }
+    .schedule-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .dt-picker-input {
+      width: 175px;
+      font-size: 12px;
+      color-scheme: dark;
+      cursor: pointer;
+    }
+    .quick-schedule-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sched-chip {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #67e8f9;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .sched-chip:hover {
+      background: rgba(6, 182, 212, 0.25);
+      color: #fff;
+    }
+    .mvp-game-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mvp-tab-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(18, 27, 36, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .mvp-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fff;
+    }
+    .mvp-tab-btn.active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0.1));
+      border: 1.5px solid #f59e0b;
+      color: #fde68a;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+    }
+    .tab-g-status {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      display: inline-block;
+    }
+    .tab-g-status.filled {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .mvp-active-game-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-left: 3.5px solid #f59e0b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .mvp-summary-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .mvp-sum-pill {
+      font-size: 10.5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      cursor: pointer;
+    }
+    .mvp-sum-pill.has-data {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+    .mvp-full-col {
+      grid-column: 1 / -1;
+    }
+    @media (max-width: 768px) {
+      .schedule-inputs-grid { grid-template-columns: 1fr; }
+      .dt-picker-input { width: 100%; }
+    }
+  </style>
 </head>
 <body class="mode-viewer view-mode-tree">
   <!-- Top Navigation Bar: ONLY 2 ITEMS (1 Judul, 1 Menu) -->
@@ -408,8 +547,11 @@
           </div>
 
           <div class="mvp-active-game-info" id="mvp-active-label">
-            ⭐ Mengisi Data MVP untuk <strong>GAME 1</strong>
+            <span>⭐ Mengisi Data MVP untuk <strong>GAME 1</strong></span>
           </div>
+
+          <!-- Live Summary of Filled Games -->
+          <div class="mvp-summary-pills" id="mvp-games-summary"></div>
 
           <div class="mvp-fields-grid">
             <div class="form-group">
@@ -486,6 +628,6 @@
   <div id="toast" class="toast"></div>
 
   <!-- Scripts -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20261118_v4"></script>
 </body>
 </html>

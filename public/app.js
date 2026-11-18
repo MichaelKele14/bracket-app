@@ -782,10 +782,6 @@
     mvpKdaInput.value = gData.kda || '';
     mvpNoteInput.value = gData.note || '';
 
-    if (mvpActiveLabel) {
-      mvpActiveLabel.innerHTML = `⭐ Mengisi Data MVP untuk <strong>GAME ${gameNum}</strong>`;
-    }
-
     document.querySelectorAll('.mvp-tab-btn').forEach(btn => {
       const g = parseInt(btn.dataset.game, 10);
       btn.classList.toggle('active', g === gameNum);
@@ -804,6 +800,38 @@
         dot.classList.toggle('filled', !!hasName);
       }
     });
+
+    if (mvpActiveLabel) {
+      const curData = tempGameMvps[activeMvpGameTab];
+      const isFilled = curData && curData.name && curData.name.trim().length > 0;
+      mvpActiveLabel.innerHTML = `
+        <span>⭐ Mengisi Data MVP untuk <strong>GAME ${activeMvpGameTab}</strong></span>
+        <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:${isFilled ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)'}; color:${isFilled ? '#6ee7b7' : '#94a3b8'};">
+          ${isFilled ? `✓ Terisi: ${escapeHtml(curData.name)}` : 'Belum Diisi'}
+        </span>
+      `;
+    }
+
+    const summaryEl = document.getElementById('mvp-games-summary');
+    if (summaryEl) {
+      let html = '';
+      for (let g = 1; g <= bo; g++) {
+        const item = tempGameMvps[g];
+        const hasData = item && item.name && item.name.trim().length > 0;
+        html += `
+          <span class="mvp-sum-pill ${hasData ? 'has-data' : ''}" data-jump-game="${g}">
+            <strong>G${g}:</strong> ${hasData ? `${escapeHtml(item.name)}${item.hero ? ` (${escapeHtml(item.hero)})` : ''}` : 'Kosong'}
+          </span>
+        `;
+      }
+      summaryEl.innerHTML = html;
+      summaryEl.querySelectorAll('.mvp-sum-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          saveCurrentMvpTabInputs();
+          loadMvpTabInputs(parseInt(pill.dataset.jumpGame, 10) || 1);
+        });
+      });
+    }
   }
 
   function openMatchEditor(match) {
