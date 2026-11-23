@@ -24,7 +24,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m1",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r1_m2",
@@ -47,7 +49,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m2",
       "nextMatchSlot": "team1",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r1_m3",
@@ -70,7 +74,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m2",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r1_m4",
@@ -93,7 +99,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m3",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r1_m5",
@@ -116,7 +124,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m4",
       "nextMatchSlot": "team1",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r1_m6",
@@ -139,7 +149,9 @@
       "winnerId": null,
       "nextMatchId": "r2_m4",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r2_m1",
@@ -158,7 +170,9 @@
       "winnerId": null,
       "nextMatchId": "sf_m1",
       "nextMatchSlot": "team1",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r2_m2",
@@ -173,7 +187,9 @@
       "winnerId": null,
       "nextMatchId": "sf_m1",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r2_m3",
@@ -192,7 +208,9 @@
       "winnerId": null,
       "nextMatchId": "sf_m2",
       "nextMatchSlot": "team1",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "r2_m4",
@@ -207,7 +225,9 @@
       "winnerId": null,
       "nextMatchId": "sf_m2",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
     },
     {
       "id": "sf_m1",
@@ -222,7 +242,11 @@
       "winnerId": null,
       "nextMatchId": "gf_m1",
       "nextMatchSlot": "team1",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": "",
+      "loserNextMatchId": "tp_m1",
+      "loserNextMatchSlot": "team1"
     },
     {
       "id": "sf_m2",
@@ -237,7 +261,11 @@
       "winnerId": null,
       "nextMatchId": "gf_m1",
       "nextMatchSlot": "team2",
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": "",
+      "loserNextMatchId": "tp_m1",
+      "loserNextMatchSlot": "team2"
     },
     {
       "id": "gf_m1",
@@ -252,7 +280,26 @@
       "winnerId": null,
       "nextMatchId": null,
       "nextMatchSlot": null,
-      "mvp": null
+      "mvp": null,
+      "gameMvps": [],
+      "schedule": ""
+    },
+    {
+      "id": "tp_m1",
+      "round": 4,
+      "roundName": "PEREBUTAN JUARA 3 & 4",
+      "isThirdPlace": true,
+      "team1": null,
+      "team2": null,
+      "score1": 0,
+      "score2": 0,
+      "bestOf": 3,
+      "status": "UPCOMING",
+      "winnerId": null,
+      "nextMatchId": null,
+      "nextMatchSlot": null,
+      "mvp": null,
+      "gameMvps": []
     }
   ]
 }
