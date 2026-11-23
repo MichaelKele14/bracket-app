@@ -336,8 +336,8 @@
     const roundTitles = {
       1: { title: 'ROUND 1 (12 Tim • BO3)', desc: 'Pemenang melaju ke Perempat Final (Round 2)' },
       2: { title: 'ROUND 2 (8 Tim • BO3)', desc: 'Perempat Final • Pemenang melaju ke Semi-Final' },
-      3: { title: 'SEMI-FINAL (4 Tim • BO3)', desc: 'Pemenang melaju ke babak Grand Final!' },
-      4: { title: 'GRAND FINAL 🏆 (BO5)', desc: 'Perebutan Gelar Juara Turnamen' }
+      3: { title: 'SEMI-FINAL (4 Tim • BO3)', desc: 'Pemenang ke Grand Final • Tim kalah ke Perebutan Juara 3 & 4!' },
+      4: { title: 'FINAL & PEREBUTAN JUARA 3 🏆', desc: 'Grand Final (Juara 1 & 2) dan Perebutan Juara 3 & 4' }
     };
 
     const cur = roundTitles[activeMobileRound] || roundTitles[1];
@@ -349,7 +349,19 @@
 
     roundMatches.forEach(match => {
       const card = document.createElement('div');
-      card.className = `mobile-card ${match.status === 'LIVE' ? 'is-live' : ''} ${match.status === 'COMPLETED' ? 'is-completed' : ''}`;
+      card.className = `mobile-card ${match.status === 'LIVE' ? 'is-live' : ''} ${match.status === 'COMPLETED' ? 'is-completed' : ''} ${match.id === 'gf_m1' ? 'is-grand-final' : ''} ${match.id === 'tp_m1' ? 'is-third-place' : ''}`;
+
+      if (match.id === 'gf_m1') {
+        const banner = document.createElement('div');
+        banner.className = 'match-special-banner gold-banner';
+        banner.innerHTML = `<span>🏆 GRAND FINAL</span><span>JUARA 1 & 2</span>`;
+        card.appendChild(banner);
+      } else if (match.id === 'tp_m1' || match.isThirdPlace) {
+        const banner = document.createElement('div');
+        banner.className = 'match-special-banner bronze-banner';
+        banner.innerHTML = `<span>🥉 PEREBUTAN JUARA 3 & 4</span><span>BRONZE MATCH</span>`;
+        card.appendChild(banner);
+      }
 
       // Card Header
       const header = document.createElement('div');
@@ -371,11 +383,11 @@
       }
 
       // Team 1 Row
-      const t1Row = createMobileTeamRow(match, match.team1, match.score1, match.winnerId === match.team1?.id);
+      const t1Row = createMobileTeamRow(match, 'team1', match.team1, match.score1, match.winnerId === match.team1?.id);
       card.appendChild(t1Row);
 
       // Team 2 Row
-      const t2Row = createMobileTeamRow(match, match.team2, match.score2, match.winnerId === match.team2?.id);
+      const t2Row = createMobileTeamRow(match, 'team2', match.team2, match.score2, match.winnerId === match.team2?.id);
       card.appendChild(t2Row);
 
       // Multi-Game MVP List (if awarded)
@@ -389,7 +401,13 @@
       footer.className = 'm-card-footer';
 
       let nextInfo = '';
-      if (match.nextMatchId) {
+      if (match.round === 3) {
+        nextInfo = '👉 Menang ke Grand Final • Kalah ke Perebutan Juara 3';
+      } else if (match.id === 'tp_m1' || match.isThirdPlace) {
+        nextInfo = '🥉 Penentuan Juara 3 & Juara 4';
+      } else if (match.id === 'gf_m1') {
+        nextInfo = '🏆 Penentuan Juara 1 & Juara 2';
+      } else if (match.nextMatchId) {
         const nextM = bracketData.matches.find(m => m.id === match.nextMatchId);
         nextInfo = `👉 Lolos ke: ${nextM ? nextM.roundName : 'Babak Selanjutnya'}`;
       } else {
@@ -444,7 +462,30 @@
     return wrap;
   }
 
-  function createMobileTeamRow(match, team, score, isWinner) {
+  function getEmptySlotLabel(match, slotName) {
+    if (match.id === 'tp_m1' || match.isThirdPlace) {
+      return slotName === 'team1' ? 'Kalah Semi-Final 1' : 'Kalah Semi-Final 2';
+    }
+    return 'Menunggu Pemenang';
+  }
+
+  function getRankBadgeElement(match, team, isWinner) {
+    if (!team || !match.winnerId) return null;
+    const badge = document.createElement('span');
+    if (match.id === 'gf_m1') {
+      badge.className = `rank-result-pill ${isWinner ? 'rank-1' : 'rank-2'}`;
+      badge.textContent = isWinner ? '🏆 JUARA 1' : '🥈 JUARA 2';
+      return badge;
+    }
+    if (match.id === 'tp_m1' || match.isThirdPlace) {
+      badge.className = `rank-result-pill ${isWinner ? 'rank-3' : 'rank-4'}`;
+      badge.textContent = isWinner ? '🥉 JUARA 3' : '🎖️ JUARA 4';
+      return badge;
+    }
+    return null;
+  }
+
+  function createMobileTeamRow(match, slotName, team, score, isWinner) {
     const row = document.createElement('div');
     row.className = `m-team-row ${!team ? 'is-empty' : ''} ${isWinner ? 'is-winner' : ''}`;
 
@@ -458,8 +499,11 @@
 
     const nameText = document.createElement('span');
     nameText.className = 'team-name-text';
-    nameText.textContent = team ? team.name : 'Menunggu Pemenang';
+    nameText.textContent = team ? team.name : getEmptySlotLabel(match, slotName);
     info.appendChild(nameText);
+
+    const rankBadge = getRankBadgeElement(match, team, isWinner);
+    if (rankBadge) info.appendChild(rankBadge);
 
     row.appendChild(info);
 
@@ -495,7 +539,7 @@
 
   function createTreeMatchCard(match) {
     const card = document.createElement('div');
-    card.className = `match-card ${match.status === 'LIVE' ? 'is-live' : ''} ${match.status === 'COMPLETED' ? 'is-completed' : ''}`;
+    card.className = `match-card ${match.status === 'LIVE' ? 'is-live' : ''} ${match.status === 'COMPLETED' ? 'is-completed' : ''} ${match.id === 'gf_m1' ? 'is-grand-final' : ''} ${match.id === 'tp_m1' || match.isThirdPlace ? 'is-third-place' : ''}`;
     card.id = `match-${match.id}`;
     card.dataset.matchId = match.id;
 
@@ -507,6 +551,18 @@
         openViewerDetail(match);
       }
     });
+
+    if (match.id === 'gf_m1') {
+      const banner = document.createElement('div');
+      banner.className = 'match-special-banner gold-banner';
+      banner.innerHTML = `<span>🏆 GRAND FINAL</span><span>JUARA 1 & 2</span>`;
+      card.appendChild(banner);
+    } else if (match.id === 'tp_m1' || match.isThirdPlace) {
+      const banner = document.createElement('div');
+      banner.className = 'match-special-banner bronze-banner';
+      banner.innerHTML = `<span>🥉 PEREBUTAN JUARA 3 & 4</span><span>BRONZE</span>`;
+      card.appendChild(banner);
+    }
 
     const meta = document.createElement('div');
     meta.className = 'match-meta';
@@ -582,9 +638,12 @@
 
     const nameEl = document.createElement('span');
     nameEl.className = 'team-name-text';
-    nameEl.textContent = team ? team.name : 'Menunggu Pemenang';
+    nameEl.textContent = team ? team.name : getEmptySlotLabel(match, slotName);
     nameEl.title = team ? team.name : '';
     info.appendChild(nameEl);
+
+    const rankBadge = getRankBadgeElement(match, team, isWinner);
+    if (rankBadge) info.appendChild(rankBadge);
 
     row.appendChild(info);
 
@@ -849,11 +908,11 @@
     if (modalScheduleDt) modalScheduleDt.value = '';
 
     modalSeed1.textContent = match.team1 ? `#${match.team1.seed}` : '?';
-    modalName1.textContent = match.team1 ? match.team1.name : 'Menunggu Pemenang';
+    modalName1.textContent = match.team1 ? match.team1.name : getEmptySlotLabel(match, 'team1');
     valScore1.textContent = tempScore1;
 
     modalSeed2.textContent = match.team2 ? `#${match.team2.seed}` : '?';
-    modalName2.textContent = match.team2 ? match.team2.name : 'Menunggu Pemenang';
+    modalName2.textContent = match.team2 ? match.team2.name : getEmptySlotLabel(match, 'team2');
     valScore2.textContent = tempScore2;
 
     populateMvpTeamSelect(match);
@@ -896,8 +955,8 @@
     roundEl.textContent = `${match.roundName || `ROUND ${match.round}`} • BO${match.bestOf || 3}`;
     titleEl.textContent = `Detail Pertandingan (${match.id.toUpperCase()})`;
 
-    const t1Name = match.team1 ? escapeHtml(match.team1.name) : 'Menunggu Pemenang';
-    const t2Name = match.team2 ? escapeHtml(match.team2.name) : 'Menunggu Pemenang';
+    const t1Name = match.team1 ? escapeHtml(match.team1.name) : getEmptySlotLabel(match, 'team1');
+    const t2Name = match.team2 ? escapeHtml(match.team2.name) : getEmptySlotLabel(match, 'team2');
     const t1Seed = match.team1 ? `#${match.team1.seed}` : '?';
     const t2Seed = match.team2 ? `#${match.team2.seed}` : '?';
     const t1Win = match.team1 && match.winnerId === match.team1.id;

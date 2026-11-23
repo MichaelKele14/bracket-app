@@ -19,10 +19,71 @@ function getDeterministicToken(pin) {
     .digest('hex');
 }
 
+function ensureThirdPlaceMatch(state) {
+  if (!state || !Array.isArray(state.matches)) return state;
+  let changed = false;
+
+  const sf1 = state.matches.find(m => m.id === 'sf_m1');
+  if (sf1 && (!sf1.loserNextMatchId || !sf1.loserNextMatchSlot)) {
+    sf1.loserNextMatchId = 'tp_m1';
+    sf1.loserNextMatchSlot = 'team1';
+    changed = true;
+  }
+
+  const sf2 = state.matches.find(m => m.id === 'sf_m2');
+  if (sf2 && (!sf2.loserNextMatchId || !sf2.loserNextMatchSlot)) {
+    sf2.loserNextMatchId = 'tp_m1';
+    sf2.loserNextMatchSlot = 'team2';
+    changed = true;
+  }
+
+  let tp = state.matches.find(m => m.id === 'tp_m1');
+  if (!tp) {
+    tp = {
+      id: 'tp_m1',
+      round: 4,
+      roundName: 'PEREBUTAN JUARA 3 & 4',
+      isThirdPlace: true,
+      team1: null,
+      team2: null,
+      score1: 0,
+      score2: 0,
+      bestOf: 3,
+      status: 'UPCOMING',
+      winnerId: null,
+      nextMatchId: null,
+      nextMatchSlot: null,
+      mvp: null,
+      gameMvps: []
+    };
+    state.matches.push(tp);
+    changed = true;
+  }
+
+  // If sf_m1 or sf_m2 already has a winner, ensure loser is placed in tp_m1
+  [
+    { sf: sf1, slot: 'team1' },
+    { sf: sf2, slot: 'team2' }
+  ].forEach(({ sf, slot }) => {
+    if (sf && sf.winnerId && sf.team1 && sf.team2 && !tp[slot]) {
+      const loser = sf.team1.id === sf.winnerId ? sf.team2 : sf.team1;
+      tp[slot] = { ...loser };
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    try {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2), 'utf8');
+    } catch { /* ignore read-only fallback */ }
+  }
+  return state;
+}
+
 function loadBracketData() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
+    const parsed = ensureThirdPlaceMatch(JSON.parse(raw));
     bracketState = parsed;
     return parsed;
   } catch (err) {
@@ -55,7 +116,7 @@ function broadcastUpdate(data) {
 let bracketState = null;
 loadBracketData();
 
-// Helper to cascade winner into next matches
+// Helper to cascade winner (and Semi-Final loser into 3rd-place match)
 function advanceWinner(state, matchId, winnerId) {
   const match = state.matches.find(m => m.id === matchId);
   if (!match) return;
@@ -67,23 +128,49 @@ function advanceWinner(state, matchId, winnerId) {
     ? (match.team1 && match.team1.id === winnerId ? match.team1 : (match.team2 && match.team2.id === winnerId ? match.team2 : null))
     : null;
 
+  const loserTeam = (winnerId && match.team1 && match.team2)
+    ? (match.team1.id === winnerId ? match.team2 : (match.team2.id === winnerId ? match.team1 : null))
+    : null;
+
+  // 1. Advance Winner to nextMatchId
   if (match.nextMatchId) {
     const nextMatch = state.matches.find(m => m.id === match.nextMatchId);
     if (nextMatch) {
       const slot = match.nextMatchSlot; // 'team1' or 'team2'
       if (winnerTeam) {
-        // If previous winner was different and had already won downstream, clear downstream
         if (prevWinnerId && prevWinnerId !== winnerId && nextMatch.winnerId === prevWinnerId) {
           advanceWinner(state, nextMatch.id, null);
         }
         nextMatch[slot] = { ...winnerTeam };
       } else {
-        // If winner cleared, clear downstream slot and if that match had that team as winner, clear it too recursively
         if (nextMatch[slot] && (!prevWinnerId || nextMatch[slot].id === prevWinnerId)) {
           const clearedId = nextMatch[slot].id;
           nextMatch[slot] = null;
           if (nextMatch.winnerId && nextMatch.winnerId === clearedId) {
             advanceWinner(state, nextMatch.id, null);
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Advance Loser to loserNextMatchId (e.g. Semi-Final Losers -> Perebutan Juara 3 & 4)
+  if (match.loserNextMatchId) {
+    const loserNextMatch = state.matches.find(m => m.id === match.loserNextMatchId);
+    if (loserNextMatch) {
+      const lSlot = match.loserNextMatchSlot; // 'team1' or 'team2'
+      if (loserTeam) {
+        const prevInSlot = loserNextMatch[lSlot];
+        if (prevInSlot && prevInSlot.id !== loserTeam.id && loserNextMatch.winnerId === prevInSlot.id) {
+          advanceWinner(state, loserNextMatch.id, null);
+        }
+        loserNextMatch[lSlot] = { ...loserTeam };
+      } else {
+        if (loserNextMatch[lSlot]) {
+          const clearedLoserId = loserNextMatch[lSlot].id;
+          loserNextMatch[lSlot] = null;
+          if (loserNextMatch.winnerId && loserNextMatch.winnerId === clearedLoserId) {
+            advanceWinner(state, loserNextMatch.id, null);
           }
         }
       }

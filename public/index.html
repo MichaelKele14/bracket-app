@@ -39,9 +39,76 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261118_v5">
+  <link rel="stylesheet" href="style.css?v=20261123_v6">
   <style>
-    /* Critical Inline Styles for Schedule & Multi-Game MVP (Immune to Browser Cache) */
+    /* Critical Inline Styles for Schedule, Multi-Game MVP & 3rd Place Match */
+    #col-gf {
+      justify-content: center !important;
+      gap: 38px !important;
+    }
+    .match-card.is-grand-final {
+      border-color: rgba(245, 158, 11, 0.55);
+      box-shadow: 0 8px 28px rgba(245, 158, 11, 0.15);
+    }
+    .match-card.is-third-place {
+      border-color: rgba(217, 119, 6, 0.5);
+      box-shadow: 0 8px 24px rgba(180, 83, 9, 0.15);
+    }
+    .match-special-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      border-top-left-radius: 7px;
+      border-top-right-radius: 7px;
+    }
+    .match-special-banner.gold-banner {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.28), rgba(245, 158, 11, 0.08));
+      color: #fde68a;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .match-special-banner.bronze-banner {
+      background: linear-gradient(90deg, rgba(217, 119, 6, 0.28), rgba(180, 83, 9, 0.08));
+      color: #fed7aa;
+      border-bottom: 1px solid rgba(217, 119, 6, 0.35);
+    }
+    .rank-result-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      margin-left: auto;
+      margin-right: 4px;
+      flex-shrink: 0;
+      letter-spacing: 0.3px;
+    }
+    .rank-result-pill.rank-1 {
+      background: rgba(245, 158, 11, 0.25);
+      border: 1px solid #f59e0b;
+      color: #fde68a;
+    }
+    .rank-result-pill.rank-2 {
+      background: rgba(148, 163, 184, 0.22);
+      border: 1px solid #94a3b8;
+      color: #e2e8f0;
+    }
+    .rank-result-pill.rank-3 {
+      background: rgba(217, 119, 6, 0.25);
+      border: 1px solid #d97706;
+      color: #fed7aa;
+    }
+    .rank-result-pill.rank-4 {
+      background: rgba(100, 116, 139, 0.2);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #cbd5e1;
+    }
     .schedule-section {
       background: rgba(18, 27, 36, 0.65);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -225,8 +292,8 @@
       <span class="round-nav-count">2 Laga</span>
     </button>
     <button class="round-nav-pill trophy-pill" data-round="4">
-      <span class="round-nav-name">Grand Final 🏆</span>
-      <span class="round-nav-count">Juara</span>
+      <span class="round-nav-name">Final & Juara 3 🏆</span>
+      <span class="round-nav-count">2 Laga</span>
     </button>
   </nav>
 
@@ -290,12 +357,12 @@
           <div class="matches-list" id="col-sf"></div>
         </div>
 
-        <!-- Round 4 (Grand Final) -->
+        <!-- Round 4 (Grand Final & Perebutan Juara 3-4) -->
         <div class="round-column" data-round="4">
           <div class="round-header trophy-header">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7"></path><path d="M14 14.66V17c0 .55.45 1 1 1h2"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-            <h3>GRAND FINAL</h3>
-            <span class="round-sub">Perebutan Juara • BO5</span>
+            <h3>FINAL & JUARA 3</h3>
+            <span class="round-sub">Juara 1, 2, 3 & 4</span>
           </div>
           <div class="matches-list" id="col-gf"></div>
         </div>
@@ -343,7 +410,7 @@
             <button type="button" class="menu-round-btn active" data-round="1">Round 1 (6 Laga)</button>
             <button type="button" class="menu-round-btn" data-round="2">Round 2 (4 Laga)</button>
             <button type="button" class="menu-round-btn" data-round="3">Semi-Final (2 Laga)</button>
-            <button type="button" class="menu-round-btn trophy" data-round="4">Grand Final 🏆</button>
+            <button type="button" class="menu-round-btn trophy" data-round="4">Final & Juara 3 🏆</button>
           </div>
         </div>
 
@@ -628,6 +695,6 @@
   <div id="toast" class="toast"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=20261118_v5"></script>
+  <script src="app.js?v=20261123_v6"></script>
 </body>
 </html>
